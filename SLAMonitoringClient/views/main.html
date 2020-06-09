@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Welcome to SLA Monitor Tool</title>
+
+  <link rel="stylesheet" type="text/css" href="../css/main.css">
+  <!-- https://electronjs.org/docs/tutorial/security#csp-meta-tag -->
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body style="margin: 0;  ">
+
+  <div class="navbar">
+    <header><a href="#" class="navbar-brand"><span>S</span>la<span>M</span>onitor</a></header>
+  </div>
+  <br><br><br><br><br><br>
+  <div class="container" style="text-align: center;">
+    <form action="#" id="ipcForm2">
+      <input type="text" name="jiraid" id="filterid" placeholder="Enter Filter ID" maxlength="15" required>
+
+      <INPUT type="Submit" id="filterSubmit" Value="Submit">
+      <br>
+      <p style="font-size: 12px;" id="errorMsg"></p>
+    </form>
+
+  </div>
+  <br><br><br>
+
+  <div>
+    <div id="label_SLA" > 
+    <canvas id="myCanvas1" width="40" height="10" style="border:1px solid #d3d3d3;">
+      Your browser does not support the HTML canvas tag.</canvas> SLA is missed <br/>
+      <canvas id="myCanvas2" width="40" height="10" style="border:1px solid #d3d3d3;">
+        Your browser does not support the HTML canvas tag.</canvas> SLA is approaching left with less than 40 percent of Total time
+        <br/>
+        <canvas id="myCanvas3" width="40" height="10" style="border:1px solid #d3d3d3;">
+          Your browser does not support the HTML canvas tag.</canvas> SLA is fine and target met.
+        </div>
+        <br/>
+    <table id="dvTable" class="tableFixHead align-left-3rd-column">
+
+    </table>
+  </div>
+  
+  <div class="footer">
+    <div style="margin-left:5px">*All Tools are restricted for NCR internal use only</div>
+  </div>
+
+</body>
+<script src="../scripts/sla.js"></script>
+
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <link rel="stylesheet" href="../css/style.css">
+  <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet">  
+  <link rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous">
+  <title>Welcome to SLA Monitor Tool</title>
+  <!-- https://electronjs.org/docs/tutorial/security#csp-meta-tag -->
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0, maximum-scale=1, minimum-scale=1">
+
+</head>
+
+<body style="background-color: #54b948;opacity: 1;">
+  <div class="loginbox">
+    <img src="../icons/Avatar.png" class="avatar">
+    <h5>Welcom to SLA Monitor</h5> 
+    
+    <p style="font-size: 12px; color: red;"  id="response"></p>
+    
+    <form action="#" id="ipcForm2">
+        <p>UserName</p>
+        <input type="text" name="username" id="username" placeholder="Enter Username" maxlength="8" required>
+        <p>Password</p>
+        <input type="password" name="password" id="password" placeholder="Enter Password" maxlength="20" required >
+        <br>
+        <input type="submit" name="submit" id="sign-in" value="Sign in" onsubmit="">
+        <!--<a href="#">Forgot your password?</a>-->
+    </form>
+    
+</div>
+<div class="footer">
+  <div style="margin-left:5px">*All Tools are restricted for NCR internal use only</div>
+</div>
+</body>
+<script src="../scripts/renderer.js"></script>
+</html>
+
