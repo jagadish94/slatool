@@ -22,118 +22,137 @@ var dvTable = document.getElementById("dvTable");
 const submitButton = document.getElementById('filterSubmit');
 var electronOpenLinkInBrowser = require("electron-open-link-in-browser");
 //const ipcRenderer = require('electron').ipcRenderer;
-const window1 = remote.getCurrentWindow();
-var sc = require('windows-service-controller');
+const window1= remote.getCurrentWindow();
 var watcher = filewatcher();
-var ErrorCode;
-
-//file watcher to output file 
+//console.log();
 watcher.add(outputPath);
 watcher.on('change', function (outputPath, stat) {
+    //var status=check_serviceRunning();
+    console.log('File modified: %s', outputPath);
     GenerateTable()
     if (!stat) console.log('deleted');
 });
 
+
+var sc = require('windows-service-controller');
+ 
+function check_serviceRunning()
+{
+ var status="";
+ serviceMsg.innerHTML="   "
+ return new Promise(resolve => {
+ sc.interrogate('SLAMonitoringService')
+ .catch(function(error) { 
+    status="error";
+    console.log(error);
+    console.log(error.message)
+    var index = error.message.search("does not exist");
+    console.log(index)
+    if (index!=-1)
+    {
+        console.log("ifblock")
+        submitButton.disabled = true;
+        serviceMsg.innerHTML ="The SLAMonitoringService does not exist as an installed service..please install" ;
+        resolve("error")
+    }
+        
+    else
+    {
+        submitButton.disabled = true;
+        serviceMsg.innerHTML ="The SLAMonitoringService has not been started..Please start of the service" ;
+        console.log("elseblock")
+        resolve("error")
+    }
+  
+
+   // return status;
+
+})
+.done(function(result) { 
+   
+    console.log(result)
+    console.log('Display name: ' + result); 
+    if(result=='error')
+    {
+        submitButton.disabled = true;
+        dvTable.innerHTML=''
+        responseParagraph.innerHTML = ''
+        document.getElementById("label_SLA").style.display = "none";
+        watcher.remove(outputPath);
+    }
+    else
+    {
+        watcher.add(outputPath);
+    }
+
+   // return result;
+    
+
+});
+});
+}
+
+
+async  function onPageLoad()
+{
+   const status= await check_serviceRunning()
+   console.log(status)
+   if(status != "error")
+   {   
+    readOutputFile()
+   }
+   else
+    submitButton.disabled = true;
+ //  console.log("status"+status1)
+}
+
 onPageLoad();
 
-//Montoring the SLAMonitoring service is running or not continuously
-function check_serviceRunning() {
-    var status = "not_error";
-    serviceMsg.innerHTML = "   "
-    return new Promise(resolve => {
-        sc.interrogate('SLAMonitoringService')
-            .catch(function (error) {
-                status = "error";
-                var index = error.message.search("does not exist");
-                if (index != -1) {
-                    submitButton.disabled = true;
-                    serviceMsg.innerHTML = "The SLAMonitoringService does not exist as an installed service..please install";
-                    //resolve("error")
-                }
 
-                else {
-                    submitButton.disabled = true;
-                    serviceMsg.innerHTML = "The SLAMonitoringService has not been started..to start the service go to start menu->services-> start the service named SLAMonitoringService ";
-                    //resolve("error")
-                }
-            })
-            .done(function (result) {
-                resolve(status)
-                if (status == 'error') {
-                    document.getElementById('filterid').disabled = true;
-                    // document.getElementById("filterid").value=''
-                    submitButton.disabled = true;
-                    dvTable.innerHTML = ''
-                    responseParagraph.innerHTML = ''
-                    document.getElementById("label_SLA").style.display = "none";
-                    watcher.remove(outputPath);
-                }
-                else {
-                    document.getElementById('filterid').disabled = false;
-                    if (fs.existsSync(dirPath)) {
-                        if (ErrorCode) {
-                            document.getElementById("label_SLA").style.display = "none";
-                            // submitButton.disabled = true;
-                        }
-                        if (dvTable.innerHTML == "" && !ErrorCode) {
-                            responseParagraph.innerHTML = "Please wait... Analysing...";                            submitButton.disabled = true;
-                        }
-                        if (fs.existsSync(outputPath)) {
-                            watcher.add(outputPath);
-                        }
-                    }
-                    else
-                        submitButton.disabled = false;
-                }
-            });
-    });
-}
 
-//get the latest data from output.json on page load
-async function onPageLoad() {
-    const status = await check_serviceRunning()
-    readOutputFile(status)
+setInterval( check_serviceRunning, 4000 );
 
-}
-//check the SLAMonitoring service  is running or not for every 4 seconds 
-setInterval(check_serviceRunning, 4000);
+//var status=check_serviceRunning();
 
-//Display the SLA_Results on page load if filterID Exists 
-function readOutputFile(status) {
-    fs.readFile(dirPath, "utf-8", (error, data) => {
-        if (error) {
-            return;
-        }
-        try {
-            var data = JSON.parse(data);
-            if (data.hasOwnProperty('filterID')) {
-                var filterID = data.filterID;
-                jira_filter = filterID;
-                submitButton.disabled = true;
-                document.getElementById("filterid").value = filterID
-                //if service is running display the jira Details
-                if (status != "error") {
-                    if (fs.existsSync(outputPath)) {
-                        GenerateTable()
-                        responseParagraph.innerHTML = "Please wait... Analysing...";
-                    }
-                }
+//console.log(status)
+
+
+function readOutputFile()
+{
+fs.readFile(dirPath, "utf-8", (error, data) => {
+    if (error) {
+        //responseParagraph.innerHTML="Unable to generate result";                    
+        // submitButton.disabled=false;
+        console.log(error)
+        return;
+    }
+    try {
+        var data = JSON.parse(data);
+        if (data.hasOwnProperty('filterID')) {
+            var filterID = data.filterID;
+            jira_filter = filterID;
+            submitButton.disabled = true;
+            document.getElementById("filterid").value = filterID
+            
+            if (fs.existsSync(outputPath)) {
+                GenerateTable()
+                responseParagraph.innerHTML = "Please wait... Analysing...";
             }
-        }
-        catch{
-            submitButton.disabled = false;
 
         }
-    })
+    }
+    catch{
+        submitButton.disabled = false;
+        console.log("error")
+    }
+})
 }
 
-//store the filterID in file once submitted
 submitFormButton.addEventListener("submit", function (event) {
     document.getElementById("label_SLA").style.display = "none";
     event.preventDefault();   // stop the form from submitting
     dvTable.innerHTML = "";
     submitButton.disabled = true;
-
     responseParagraph.innerHTML = "Please wait... Analysing...";
     let filterID = document.getElementById("filterid").value;
     jira_filter = filterID;
@@ -145,13 +164,13 @@ submitFormButton.addEventListener("submit", function (event) {
     fs.writeFile(dirPath, data, "utf-8", (error, data) => {
 
         if (error) {
+            console.error("error: " + error);
             return;
         }
         // GenerateTable()    
     });
 });
 
-//Restricting the summary length of jira to 12 words 
 function shrinkSummary(summary) {
     var words = summary.split(" ");
     var combinewords = "";
@@ -161,9 +180,9 @@ function shrinkSummary(summary) {
         combinewords = combinewords + " " + words[i]
     }
     return combinewords
+
 }
 
-//Delete the provided file if present 
 function deleteFiles(dirPath) {
     if (fs.existsSync(dirPath)) {
         // Do something
@@ -171,16 +190,16 @@ function deleteFiles(dirPath) {
         // Do something
         fs.unlink(dirPath, (err) => {
             if (err) {
-
+                console.log("failed to delete local image:" + err);
             } else {
-                console.log('successfully deleted');
+                console.log('successfully deleted local image');
             }
         });
     }
 
 }
 
-//write Data to provided file 
+
 function writeFile(dirPath) {
 
     fs.writeFile(dirPath, ' ', function (err) {
@@ -188,52 +207,49 @@ function writeFile(dirPath) {
         //console.log('Hello World > helloworld.txt');
     });
 }
-
-//open a jira in new window on click on jiraID 
-function newwin(jiraID) {
-    require('electron').shell.openExternal('https://jira.ncr.com/browse/' + jiraID);
-
-}
-
-//delete files on logout 
-function logout() {
-    deleteFiles(credPath)
-    deleteFiles(dirPath)
-    writeFile(outputPath)
-   //deleteFiles(outputPath)
-   main.openWindow('index')
-   currentWindow.close()
+function newwin(url)
+{
+    console.log(url)
+    require('electron').shell.openExternal('https://jira.ncr.com/browse/ACTNDCBS-4107');
 
 }
-
-//sort jira results from filterID  based on missed-approaching-others.
-function sortData(SLA_Result) {
-    var missed = [];
-    var initial = [];
-    var approaching = [];
+function sortData(SLA_Result)
+{
+    console.log(typeof SLA_Result)
+    console.log(SLA_Result)
+    var missed=[];
+    var initial=[];
+    var approaching=[];
     for (var i = 0; i < SLA_Result.length; i++) {
         var obj = SLA_Result[i];
-        if (obj.SLA_For_Response[0].Action == "missed" || obj.SLA_Update_Frequency[0].Action == "missed" || obj.SLA_Days_To_Resolve[0].Action == "missed") {
+        //var summary = shrinkSummary(obj.Summary)
+        if(obj.SLA_For_Response[0].Action =="missed"|| obj.SLA_Update_Frequency[0].Action=="missed" || obj.SLA_Days_To_Resolve[0].Action=="missed")
+        {
             missed.push(obj)
             continue;
         }
-        if (obj.SLA_For_Response[0].Action == "Approaching" || obj.SLA_Update_Frequency[0].Action == "Approaching" || obj.SLA_Days_To_Resolve[0].Action == "Approaching") {
+        if(obj.SLA_For_Response[0].Action =="Approaching"|| obj.SLA_Update_Frequency[0].Action=="Approaching" || obj.SLA_Days_To_Resolve[0].Action=="Approaching")
+        {
             approaching.push(obj)
             continue;
         }
 
         initial.push(obj)
 
-        // customers.push([obj.JiraID, summary, obj.SLA_For_Response[0].SLA + "_" + obj.SLA_For_Response[0].Action, obj.SLA_Update_Frequency[0].SLA + "_" + obj.SLA_Update_Frequency[0].Action, obj.SLA_Days_To_Resolve[0].SLA + "_" + obj.SLA_Days_To_Resolve[0].Action]);
+       // customers.push([obj.JiraID, summary, obj.SLA_For_Response[0].SLA + "_" + obj.SLA_For_Response[0].Action, obj.SLA_Update_Frequency[0].SLA + "_" + obj.SLA_Update_Frequency[0].Action, obj.SLA_Days_To_Resolve[0].SLA + "_" + obj.SLA_Days_To_Resolve[0].Action]);
     }
-    sortResult = missed.concat(approaching, initial);
-    return sortResult;
+    console.log(missed)
+    console.log(approaching)
+    console.log(initial)
 
+    sortResult = missed.concat(approaching,initial); 
+    return sortResult;
+     
 }
 
-//Display jiraDetails for provided filterID in table 
 function GenerateTable() {
     try {
+        //console.log("generateTable")
         var customers = new Array();
         var SLA_Result;
         customers.push(["Jira ID", "Summary", "SLA for Response", "SLA Update Frequency", "SLA Days to Resolve"]);
@@ -246,35 +262,45 @@ function GenerateTable() {
             }
             SLA_Result = data;
             var SLA_Result = JSON.parse(SLA_Result);
+            console.log(SLA_Result)
+            console.log(SLA_Result[0].filterID)
+            console.log(jira_filter)
             if (SLA_Result[0].filterID == jira_filter) {
                 responseParagraph.innerHTML = "";
                 SLA_Result = SLA_Result[0].SLA_Result;
                 if (SLA_Result[0].hasOwnProperty('ErrorCode')) {
-                    ErrorCode = SLA_Result[0].ErrorCode;
-                    ErrorDescription = SLA_Result[0].ErrorDescription;
-                    //console.log(ErrorCode);
-                    dvTable.innerHTML = ''
-                    if (ErrorCode == "Unauthorized") {
+                    var ErrorCode = SLA_Result[0].ErrorCode;
+                    console.log(ErrorCode);
+                    if (ErrorCode == "BadRequest")
+                        responseParagraph.innerHTML = "The given filterID is not valid.";
+                    else if (ErrorCode == "GatewayTimeout")
+                        responseParagraph.innerHTML = "Unable to connect to the Server.";
+                    else if (ErrorCode == "Unauthorized") {
                         deleteFiles(credPath)
                         writeFile(outputPath)
                         //deleteFiles(notificationpath)
                         deleteFiles(dirPath)
+
                         main.openWindow('index')
                         currentWindow.close()
-                        responseParagraph.innerHTML = ErrorDescription;
+                        responseParagraph.innerHTML = "The given username or password is not correct";
                     }
+                    else if (ErrorCode == "SLA")
+                        responseParagraph.innerHTML = "Unable to calculate SLA Time";
                     else
-                        responseParagraph.innerHTML = ErrorDescription;
+                        responseParagraph.innerHTML = "Internal server error";
 
                     submitButton.disabled = false;
                     return;
                 }
-                SLA_Result = sortData(SLA_Result)
+                SLA_Result=sortData(SLA_Result)
                 for (var i = 0; i < SLA_Result.length; i++) {
                     var obj = SLA_Result[i];
                     var summary = shrinkSummary(obj.Summary)
-                    var jiraid = "<a href='#' onclick=newwin(" + "'" + obj.JiraID + "'" + ")" + " " + "title=" + "'" + "serverity: " + obj.Severity + "&#10;" + "priority: " + obj.Priority + "'" + ">" + obj.JiraID + "</a>"
-                    //  jiraid.setAttribute("onclick","require('shell').openExternal('" + jiraid + "')");
+    
+                 var jiraid="<a href='#' onclick=newwin("+"'" +obj.JiraID+"'"+")"+" "+"title="+"'"+ "serverity: "+obj.Severity+ "&#10;"+"priority: "+obj.Priority+ "'"  +">"+obj.JiraID+"</a>"
+                   console.log(jiraid)
+                  //  jiraid.setAttribute("onclick","require('shell').openExternal('" + jiraid + "')");
                     customers.push([jiraid, summary, obj.SLA_For_Response[0].SLA + "_" + obj.SLA_For_Response[0].Action, obj.SLA_Update_Frequency[0].SLA + "_" + obj.SLA_Update_Frequency[0].Action, obj.SLA_Days_To_Resolve[0].SLA + "_" + obj.SLA_Days_To_Resolve[0].Action]);
                 }
 
@@ -302,29 +328,32 @@ function GenerateTable() {
                     for (var j = 0; j < columnCount; j++) {
                         var cell = row.insertCell(-1);
                         var words;
-                        if (j == 0 || j == 1) {
+                        if(j==0||j==1)
+                        {
                             words = customers[i][j];
                             cell.innerHTML = words;
                         }
-                        if (j == 2 || j == 3 || j == 4) {
-                            words = customers[i][j].split('_');
-                            if (words[1] == "targetMet") {
-                                cell.setAttribute("bgcolor", "GREEN")
-                            }
-                            if (words[1] == "missed") {
-                                cell.setAttribute("bgcolor", "red")
-                            }
-                            if (words[1] == "Approaching") {
-                                cell.setAttribute("bgcolor", "ORANGE")
-                            }
-                            cell.innerHTML = words[0];
-
+                        if(j==2||j==3||j==4)
+                        {
+                         words = customers[i][j].split('_');
+                        if (words[1] == "targetMet") {
+                            cell.setAttribute("bgcolor", "GREEN")
                         }
+                        if (words[1] == "missed") {
+                            cell.setAttribute("bgcolor", "red")
+                        }
+                        if (words[1] == "Approaching") {
+                            cell.setAttribute("bgcolor", "ORANGE")
+                        }
+                        cell.innerHTML = words[0];
+                       
+                    }
+                    
+                        
 
                     }
                 }
                 if (customers.length >= 1) {
-                    ErrorCode = null;
                     document.getElementById("label_SLA").style.display = "block";
                     var red = document.getElementById("myCanvas1");
                     var orange = document.getElementById("myCanvas2");
@@ -344,7 +373,7 @@ function GenerateTable() {
 
                 }
 
-                // var dvTable = document.getElementById("dvTable");
+               // var dvTable = document.getElementById("dvTable");
                 //var table = document.getElementById('dvTable');
                 dvTable.innerHTML = "";
                 dvTable.appendChild(table);

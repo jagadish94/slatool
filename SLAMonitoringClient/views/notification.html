@@ -18,22 +18,20 @@
 
   <div class="navbar">
     <header><a href="#" class="navbar-brand"><span>S</span>la<span>M</span>onitor</a></header>
-    <div class="topnav-right">
-      <a href="mailto:AS230390@ncr.com" class="navbar-side-menu"><i class="fa fa-fw fa-envelope"></i> Contact </a>
-      <a href="#" class="navbar-side-menu"><i class="fa fa-question-circle"></i> Help </a>
-      <a  class="navbar-side-menu" href= "javascript:logout();"><i class="fa fa-sign-out"></i> Log Out </a>
-    </div>
   </div>
-  <br><br><br>
-  <p id=info >The SLA Monitor Tool  helps user to track SLA time and Notify if the Jira is about to reach the deadline or missed target.</p>
-  <p style="font-size: 12px; color:red;" id="serviceMsg"></p>
+  <br><br><br><br>
+  <div hidden>
+  <p type="hidden" style="font-size: 12px; color:red;" id="serviceMsg"></p>
+</div>
   <div class="container" style="text-align: center;">
-    <form action="#" id="ipcForm2"> Enter filter ID:
-      <input type="text" name="jiraid" id="filterid" placeholder="Filter ID" maxlength="15" required>
+    <form action="#" id="ipcForm2">
+      <input   type="hidden"type="text" name="jiraid" id="filterid" placeholder="Enter Filter ID" maxlength="15" required>
 
-      <INPUT type="Submit" id="filterSubmit" Value="Submit">
+      <INPUT type="hidden" type="Submit" id="filterSubmit" Value="Submit">
       <br>
-      <p style="font-size: 12px;" id="errorMsg"></p>
+      <div hidden>
+      <p  type="hidden" style="font-size: 12px;" id="errorMsg"> ddd</p>
+    </div>
     </form>
 
   </div>
@@ -41,15 +39,16 @@
 
   <div>
     <div id="label_SLA" > 
-    <canvas id="myCanvas1" width="40" height="10" style="border:1px solid #d3d3d3;"></canvas> SLA is missed(Days left) <br/>
+    <canvas id="myCanvas1" width="40" height="10" style="border:1px solid #d3d3d3;">
+      Your browser does not support the HTML canvas tag.</canvas> SLA is missed <br/>
       <canvas id="myCanvas2" width="40" height="10" style="border:1px solid #d3d3d3;">
-        Your browser does not support the HTML canvas tag.</canvas> SLA is approaching left with less than 40 percent of Total time(Days left)
+        Your browser does not support the HTML canvas tag.</canvas> SLA is approaching left with less than 40 percent of Total time
         <br/>
         <canvas id="myCanvas3" width="40" height="10" style="border:1px solid #d3d3d3;">
-          Your browser does not support the HTML canvas tag.</canvas> SLA is fine and target met(Days taken).
+          Your browser does not support the HTML canvas tag.</canvas> SLA is fine and target met.
         </div>
-     <br>
-
+        <br/>
+        <br><br><br>
     <table id="dvTable" class="tableFixHead align-left-3rd-column">
 
     </table>
