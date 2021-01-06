@@ -8,7 +8,7 @@
     "win-cert": "electron-builder create-self-signed-cert -p SlaMonitorTool"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "crypto": "^1.0.1",
     "electron-open-link-in-browser": "^1.0.2",
     "electron-winstaller": "^4.0.1",
